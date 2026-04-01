@@ -1,8 +1,8 @@
-# Solution Engineer Challenge
+# Support Engineer Challenge
 
 ## Scenario
 
-You're a solution engineer at Blacksmith. A potential high value customer (NovaPay) based in the US has just migrated their CI/CD pipelines from GitHub-hosted runners to Blacksmith. They're frustrated because things aren't working as expected and they've opened a support ticket:
+You're a Support Engineer at Blacksmith. A potential high value customer (NovaPay) based in the US has just migrated their CI/CD pipelines from GitHub-hosted runners to Blacksmith. They're frustrated because things aren't working as expected and they've opened a support ticket:
 
 > Hi,
 >
