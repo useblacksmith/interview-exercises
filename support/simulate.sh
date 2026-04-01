@@ -261,15 +261,15 @@ if [[ "$RUN_JOB" == "test" ]]; then
   exit 0
 fi
 
-# Pre-check: are all runner labels valid?
+# Pre-check: are lint and docker runner labels valid?
+# (test label is checked separately — it can be a non-Blacksmith label like ubuntu-latest)
 CI_LABELS_VALID=true
-for label in "$LINT_LABEL" "$TEST_LABEL" "$DOCKER_LABEL"; do
+for label in "$LINT_LABEL" "$DOCKER_LABEL"; do
   if ! is_blacksmith_label "$label"; then
     CI_LABELS_VALID=false
     BAD_LABEL="$label"
     BAD_JOB=""
     [[ "$label" == "$LINT_LABEL" ]] && BAD_JOB="lint"
-    [[ "$label" == "$TEST_LABEL" ]] && BAD_JOB="test"
     [[ "$label" == "$DOCKER_LABEL" ]] && BAD_JOB="build-docker"
     break
   fi
@@ -612,11 +612,15 @@ fi
 separator
 
 # ---- TEST JOB ----
-TEST_VCPU=$(get_vcpu "$TEST_LABEL")
 echo -e "${BOLD}Job: test${NC}"
 log "Requesting runner for label: ${TEST_LABEL}"
 sleep 0.3
-log "Runner machine name: blacksmith-01kf8xmndcxw5chm29zg9wmx3r-${TEST_VCPU}vcpu"
+if is_blacksmith_label "$TEST_LABEL"; then
+  TEST_VCPU=$(get_vcpu "$TEST_LABEL")
+  log "Runner machine name: blacksmith-01kf8xmndcxw5chm29zg9wmx3r-${TEST_VCPU}vcpu"
+else
+  log "Runner machine name: github-actions-xlarge-runner"
+fi
 if [[ "$TEST_UBUNTU" == "2204" ]]; then
   log "Operating System: Ubuntu 22.04.4 LTS"
 else
