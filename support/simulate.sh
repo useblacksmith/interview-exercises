@@ -261,15 +261,15 @@ if [[ "$RUN_JOB" == "test" ]]; then
   exit 0
 fi
 
-# Pre-check: are lint and docker runner labels valid?
-# (test label is checked separately — it can be a non-Blacksmith label like ubuntu-latest)
+# Pre-check: are all CI runner labels valid Blacksmith labels?
 CI_LABELS_VALID=true
-for label in "$LINT_LABEL" "$DOCKER_LABEL"; do
+for label in "$LINT_LABEL" "$TEST_LABEL" "$DOCKER_LABEL"; do
   if ! is_blacksmith_label "$label"; then
     CI_LABELS_VALID=false
     BAD_LABEL="$label"
     BAD_JOB=""
     [[ "$label" == "$LINT_LABEL" ]] && BAD_JOB="lint"
+    [[ "$label" == "$TEST_LABEL" ]] && BAD_JOB="test"
     [[ "$label" == "$DOCKER_LABEL" ]] && BAD_JOB="build-docker"
     break
   fi
