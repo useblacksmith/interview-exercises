@@ -27,9 +27,31 @@ Colin has just submitted this ticket. You haven't started investigating yet. Dra
 
 ---
 
-## 2. Technical Explanation
+## 2. Runner Label Fix
 
-You've fixed the Docker build issue (it's now using a larger runner and Blacksmith's caching). Colin follows up:
+You've identified that the lint job was using `ubuntu-latest` instead of a Blacksmith runner label, and you've fixed it. Let Colin know what you found and what you changed.
+
+**Your response:**
+
+<!-- Explain what was wrong and what you changed -->
+
+---
+
+## 3. Docker Build Fix
+
+After fixing the runner label, you found the Docker build was crashing with an out-of-memory error. You've fixed this by changing the runner size. Colin follows up:
+
+> Build is way faster now, that's great! But the push step still takes over a minute. And our deploy to production is still completely broken — smoke tests time out every time.
+
+**Your response:**
+
+<!-- Explain what you fixed, acknowledge the remaining issues, and set expectations -->
+
+---
+
+## 4. Cold Cache Explanation
+
+Colin pushes back on the Docker build speed:
 
 > Actually wait — we re-ran the pipeline and the first Docker build after your changes was still around 6 minutes. Are you sure this caching thing is actually working? This doesn't seem any different from what we had on GitHub.
 
@@ -39,9 +61,31 @@ You've fixed the Docker build issue (it's now using a larger runner and Blacksmi
 
 ---
 
-## 3. Resolution Summary
+## 5. Region Mismatch Fix
 
-The investigation is complete. Draft a follow-up message to Colin summarizing everything you found, what was changed, and any outstanding items. Write this as you would a real support ticket reply — it should be something Colin can share with his team.
+You've identified that the Blacksmith runners were configured in `eu-central` while NovaPay's AWS infrastructure is in `us-west-2`, causing cross-region latency. You've fixed the region in both workflow files. Colin follows up:
+
+> Deploy is working now, thank you! But we're also seeing 2 test failures that always passed on GitHub. Something about a config parser? Our tests haven't changed at all.
+
+**Your response:**
+
+<!-- Explain what you fixed for the deploy issue, and address the new test failures -->
+
+---
+
+## 6. Test Failures & Escalation
+
+You've investigated the test failures and identified that they're caused by a difference in grep behavior between Ubuntu 24.04 (Blacksmith) and Ubuntu 22.04 (GitHub Actions). This is not something the customer can fix — it needs to be escalated to the Blacksmith engineering team. Draft your response covering the workaround and next steps.
+
+**Your response:**
+
+<!-- Explain the root cause, any workaround, and what happens next -->
+
+---
+
+## 7. Final Summary
+
+Draft a closing message to Colin summarizing the full investigation. This should be something Colin can share with his team and reference later. Cover what was found, what was changed, and any outstanding items.
 
 **Your response:**
 
