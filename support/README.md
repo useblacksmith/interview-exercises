@@ -6,11 +6,13 @@ You're a Support Engineer at Blacksmith. A potential high value customer (NovaPa
 
 > Hi,
 >
-> We migrated to Blacksmith last week following the migration guide and honestly it's been a nightmare. Our CI pipeline is completely broken!! A few members of team have tried to set Blacksmith up and ran into similar issues, Jobs aren't running, our deploy keeps failing and timing out, and we can't figure out why. We are based in the US if that helps with anything.
+> We migrated to Blacksmith last week following the migration guide and honestly it's been a nightmare. Our CI pipeline is completely broken — jobs aren't running, our deploy keeps failing and timing out, and we can't figure out why. We are based in the US if that helps with anything.
 >
-> On top of that, our Docker build step is still taking almost 7 minutes which is basically the same as what we were getting on GitHub. We're a large org and we need these build times cut significantly - that was one the main reasons we switched to Blacksmith in the first place.
+> On top of that, our Docker build step is still taking almost 7 minutes which is basically the same as what we were getting on GitHub. We're a large org and we need these build times cut significantly — that was one of the main reasons we switched to Blacksmith in the first place.
 >
-> Any optimisations you can suggest for the Docker build would be really appreciated.
+> A few members of team have tried to set Blacksmith up and ran into similar issues.
+>
+> Any help would be really appreciated.
 >
 > Thanks,
 > Colin (NovaPay DevOps)
@@ -18,37 +20,26 @@ You're a Support Engineer at Blacksmith. A potential high value customer (NovaPa
 ## Prerequisites
 
 - A terminal (macOS/Linux/WSL)
-- No dependencies required - the simulation is a standalone bash script
+- No dependencies required — the simulation is a standalone bash script
 
 ## Your Task
 
-### Step 1: Run the pipeline simulation
-
-Start by seeing what the customer is experiencing:
+Run the pipeline simulation to see what the customer is experiencing:
 
 ```bash
 bash simulate.sh
 ```
 
-Or if you have npm installed:
+This simulates a full CI pipeline run and shows the output from each job. Investigate the pipeline output, dig into the source files, and use the Blacksmith documentation in `docs/` to understand what's going wrong and fix it. Re-run the simulation after each fix to verify your changes.
 
-```bash
-npm run simulate
-```
+### Files to Investigate
 
-This simulates a full CI pipeline run and shows you the output from each job.
+- `.github/workflows/ci.yml` — CI pipeline (lint, test, docker build)
+- `.github/workflows/deploy.yml` — Deployment pipeline
+- `Dockerfile` — Docker build configuration
 
-### Step 2: Investigate
+### Reference Documentation
 
-Based on what you saw in the simulation, dig into the source files to understand why things are failing or underperforming and make changes in the following files:
-
-- `.github/workflows/ci.yml` - CI pipeline (lint, test, docker build)
-- `.github/workflows/deploy.yml` - Deployment pipeline
-
-Use the Blacksmith documentation in `docs/` to cross-reference what you find alongside official documentation.
-
-## Reference Documentation
-
-- `docs/blacksmith-overview.md` - Quick start guide, runner labels, and regions
-- `docs/runner-types.md` - Runner types, specs, and pricing
-- `docs/docker-caching.md` - How to set up Docker layer caching
+- `docs/blacksmith-overview.md` — Quick start guide, runner labels, and regions
+- `docs/runner-types.md` — Runner types, specs, and pricing
+- `docs/docker-caching.md` — How to set up Docker layer caching
