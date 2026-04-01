@@ -7,7 +7,7 @@
 | **Duration** | 50 minutes |
 | **Format** | Live debugging + verbal customer communication |
 | **Your role** | Play "Colin" — frustrated NovaPay DevOps engineer |
-| **Candidate access** | This repo, a terminal, browser for general reference |
+| **Candidate access** | This repo, a terminal, [docs.blacksmith.sh](https://docs.blacksmith.sh) |
 
 ## Pre-Interview Setup
 
@@ -54,9 +54,9 @@ Let the candidate work. They should run `bash simulate.sh`, examine files, and s
 
 **What happens:** Simulation runs lint (passes), then Docker build fails with exit code 137 — OOM kill on `blacksmith-2vcpu-ubuntu-2404` (8GB RAM). Test and deploy are skipped.
 
-**Expected fix:** Change build-docker job `runs-on` to `blacksmith-4vcpu-ubuntu-2404` (16GB) or larger. Candidate should reference `docs/runner-types.md` to pick the right size.
+**Expected fix:** Change build-docker job `runs-on` to `blacksmith-4vcpu-ubuntu-2404` (16GB) or larger. Candidate should reference [docs.blacksmith.sh](https://docs.blacksmith.sh) to pick the right size.
 
-**Verification:** Candidate re-runs. Docker build succeeds and is fast (cached layers), but push is slow (7.1 MB/s avg, warning about expected >100 MB/s). Pipeline continues to deploy, which fails.
+**Verification:** Candidate re-runs. Docker build succeeds and is fast (cached layers), but push timestamps show red-highlighted gaps (18-34s between layers). Pipeline continues to deploy, which fails.
 
 **After the fix, deliver this as Colin:**
 
@@ -124,23 +124,33 @@ Let the candidate work. They should run `bash simulate.sh`, examine files, and s
 
 > "Deploy is working now, thank you! But we're also seeing 2 test failures that always passed on GitHub. Something about a config parser? Our tests haven't changed at all."
 
-**What happens:** The simulation shows test failures:
+**What happens:** The simulation shows test failures with only the grep version as a clue:
 ```
 FAIL test/integration/config-parser.test.sh
-  grep -oP '(?<=APP_VERSION=)\S+' .env.production
-  Expected: "2.4.1", Got: "" (empty)
+
+● Config parser > should extract version from production config
+    Command: grep -oP '(?<=APP_VERSION=)\S+' .env.production
+    Expected: "2.4.1"
+    Received: "" (empty - no match)
+
+● Config parser > should extract all config keys
+    Command: grep -cP '\w+=.+' .env.production
+    Expected: 14
+    Received: 0
 
   grep --version: grep (GNU grep) 3.11
-  Ubuntu 24.04 ships grep 3.11 which changed PCRE (-P) pattern handling.
-  These tests pass with grep 3.7 on Ubuntu 22.04 (GitHub Actions runners).
 ```
+
+The candidate needs to figure out that grep 3.11 (Ubuntu 24.04) behaves differently from grep 3.7 (Ubuntu 22.04 / GitHub Actions). The simulation does NOT spell this out.
+
+**Nudge (if stuck):** Suggest they try changing the test job's runner label to `ubuntu-latest` and running `bash simulate.sh --job test`. This runs just the test job on a GitHub Actions runner (Ubuntu 22.04, grep 3.7) where all tests pass — confirming the environment parity issue.
 
 **Expected response (three parts):**
 1. **Identify:** This is an environment parity issue — grep behaves differently on Ubuntu 24.04 vs 22.04
 2. **Workaround:** Suggest changing the test job to `blacksmith-4vcpu-ubuntu-2204` as a temporary fix
 3. **Escalate:** Flag this to Blacksmith's engineering team for investigation
 
-**Verification:** If candidate changes test job to `ubuntu-2204`, simulation shows all tests passing.
+**Verification:** If candidate changes test job to `blacksmith-4vcpu-ubuntu-2204` (or `ubuntu-latest` via `--job test`), simulation shows all tests passing with `grep (GNU grep) 3.7`.
 
 **Difficulty:** Hard — requires reading the error carefully, understanding it's NOT a customer config issue, and knowing when to escalate vs. fix.
 
@@ -163,7 +173,7 @@ If the candidate is stuck for more than 8 minutes on any bug, offer a nudge:
 |-----|-------|
 | Docker OOM | "The error says exit code 137 — what does that typically mean?" |
 | Region mismatch | "Look at the deploy output — which operations are slow and which are fast?" |
-| Env parity | "The error mentions specific versions. What's different about the environment?" |
+| Env parity | "Try running just the test job with a different runner — `bash simulate.sh --job test`" |
 
 If the candidate finishes all bugs early, ask:
 
@@ -230,7 +240,7 @@ Give them 5 minutes. Evaluate:
 
 | Criterion | Y/N |
 |-----------|-----|
-| Referenced provided docs (runner-types.md, overview.md, etc.) | |
+| Referenced docs.blacksmith.sh for runner specs, regions, etc. | |
 | Re-ran simulation after making fixes | |
 | Worked systematically (not random trial-and-error) | |
 | Connected slow Docker push to region mismatch (same root cause) | |

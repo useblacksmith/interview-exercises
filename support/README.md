@@ -30,7 +30,13 @@ Run the pipeline simulation to see what the customer is experiencing:
 bash simulate.sh
 ```
 
-This simulates a full CI pipeline run and shows the output from each job. Investigate the pipeline output, dig into the source files, and use the Blacksmith documentation in `docs/` to understand what's going wrong and fix it. Re-run the simulation after each fix to verify your changes.
+This simulates a full CI pipeline run and shows the output from each job. Investigate the pipeline output, dig into the source files, and use the Blacksmith documentation to understand what's going wrong and fix it. Re-run the simulation after each fix to verify your changes.
+
+You can also run a single job in isolation:
+
+```bash
+bash simulate.sh --job test
+```
 
 ### Files to Investigate
 
@@ -40,6 +46,4 @@ This simulates a full CI pipeline run and shows the output from each job. Invest
 
 ### Reference Documentation
 
-- `docs/blacksmith-overview.md` — Quick start guide, runner labels, and regions
-- `docs/runner-types.md` — Runner types, specs, and pricing
-- `docs/docker-caching.md` — How to set up Docker layer caching
+- [docs.blacksmith.sh](https://docs.blacksmith.sh) — Blacksmith documentation (runner types, regions, Docker caching, etc.)
