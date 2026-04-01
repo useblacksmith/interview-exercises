@@ -50,9 +50,21 @@ Give the candidate the README. Let them read Colin's ticket (2 min), then:
 
 Let the candidate work. They should run `bash simulate.sh`, examine files, and start fixing issues. The simulation stops at the first failure, so each fix reveals the next issue.
 
-### Round 1: Docker OOM (Bug 1)
+### Round 1: Wrong Runner Label (Bug 1)
 
-**What happens:** Simulation runs lint (passes), then Docker build fails with exit code 137 — OOM kill on `blacksmith-2vcpu-ubuntu-2404` (8GB RAM). Test and deploy are skipped.
+**What happens:** Simulation immediately fails on the lint job — it waits for a runner matching `ubuntu-latest` and times out after 15 minutes. All other jobs are skipped.
+
+**Expected fix:** Change lint job `runs-on` from `ubuntu-latest` to a Blacksmith label like `blacksmith-2vcpu-ubuntu-2404`. Candidate should reference [docs.blacksmith.sh](https://docs.blacksmith.sh) for valid runner labels.
+
+**Verification:** Candidate re-runs. Lint passes, but Docker build fails with OOM (exit code 137).
+
+**Difficulty:** Easy — error message says no runner matching the label was found.
+
+---
+
+### Round 2: Docker OOM (Bug 2)
+
+**What happens:** Lint passes, then Docker build fails with exit code 137 — OOM kill on `blacksmith-2vcpu-ubuntu-2404` (8GB RAM). Test and deploy are skipped.
 
 **Expected fix:** Change build-docker job `runs-on` to `blacksmith-4vcpu-ubuntu-2404` (16GB) or larger. Candidate should reference [docs.blacksmith.sh](https://docs.blacksmith.sh) to pick the right size.
 
@@ -62,11 +74,11 @@ Let the candidate work. They should run `bash simulate.sh`, examine files, and s
 
 > "Build is way faster now, that's great! But the push step still takes over a minute. And our deploy to production is still completely broken — smoke tests time out every time."
 
-**Difficulty:** Easy — error message is explicit, runner-types.md has the spec table.
+**Difficulty:** Easy — error message is explicit, docs have the spec table.
 
 ---
 
-### Round 2: Cold Cache Explanation (Communication Checkpoint)
+### Round 3: Cold Cache Explanation (Communication Checkpoint)
 
 **Trigger:** After Docker fix, deliver this as Colin:
 
@@ -93,7 +105,7 @@ Let the candidate work. They should run `bash simulate.sh`, examine files, and s
 
 ---
 
-### Round 3: Region Mismatch (Bug 2)
+### Round 4: Region Mismatch (Bug 3)
 
 **Trigger:** After cold cache explanation, deliver this as Colin:
 
@@ -118,7 +130,7 @@ Let the candidate work. They should run `bash simulate.sh`, examine files, and s
 
 ---
 
-### Round 4: Environment Parity / Escalation (Bug 3)
+### Round 5: Environment Parity / Escalation (Bug 4)
 
 **Trigger:** After region fix, deliver this as Colin:
 
@@ -171,6 +183,7 @@ If the candidate is stuck for more than 8 minutes on any bug, offer a nudge:
 
 | Bug | Nudge |
 |-----|-------|
+| Wrong label | "What runner labels does Blacksmith expect? Check the docs." |
 | Docker OOM | "The error says exit code 137 — what does that typically mean?" |
 | Region mismatch | "Look at the deploy output — which operations are slow and which are fast?" |
 | Env parity | "Try running just the test job with a different runner — `bash simulate.sh --job test`" |
@@ -213,9 +226,10 @@ Give them 5 minutes. Evaluate:
 
 | # | Bug | Found | Fixed | Verified (re-ran sim) |
 |---|-----|-------|-------|-----------------------|
-| 1 | Docker OOM (2vCPU / 8GB) | Y/N | Y/N | Y/N |
-| 2 | Region mismatch (`eu-central` vs `us-west-2`) | Y/N | Y/N | Y/N |
-| 3 | Env parity (grep 3.11 vs 3.7) | Y/N | Workaround / N | Y/N |
+| 1 | Wrong runner label (`ubuntu-latest`) | Y/N | Y/N | Y/N |
+| 2 | Docker OOM (2vCPU / 8GB) | Y/N | Y/N | Y/N |
+| 3 | Region mismatch (`eu-central` vs `us-west-2`) | Y/N | Y/N | Y/N |
+| 4 | Env parity (grep 3.11 vs 3.7) | Y/N | Workaround / N | Y/N |
 
 ### Escalation Judgment
 
@@ -250,20 +264,20 @@ Give them 5 minutes. Evaluate:
 ## Scoring Guide
 
 ### Strong Hire
-- All 3 bugs found and fixed/workaround applied
+- All 4 bugs found and fixed/workaround applied
 - Escalation handled correctly (identified, workaround, escalate)
 - Communication strong throughout (empathy, clear explanations, structured summary)
 - Connected slow push + deploy timeout as same root cause
 - Written follow-up is solid
 
 ### Hire
-- 2-3 bugs found and fixed
+- 3-4 bugs found and fixed
 - Escalation mostly handled (identified issue, may not have suggested workaround)
 - Communication adequate (some empathy, reasonable explanations)
 - Written follow-up covers the key points
 
 ### Borderline
-- 1-2 bugs found and fixed
+- 2-3 bugs found and fixed
 - May have missed the escalation or tried to "fix" the grep issue
 - Communication lacks structure or empathy
 - Struggled with region mismatch diagnostic reasoning
