@@ -299,15 +299,15 @@ if [[ "$CI_LABELS_VALID" == false ]]; then
   sleep 0.5
   log "Waiting for a hosted runner to pick up this job..."
   sleep 1
-  log "Still waiting for a runner..."
+  log "Still waiting for a runner..." 29
   sleep 1
-  log "Still waiting for a runner... (elapsed: 2m 14s)"
+  log "Still waiting for a runner... (elapsed: 2m 14s)" 104
   sleep 1
-  log "Still waiting for a runner... (elapsed: 5m 02s)"
+  log "Still waiting for a runner... (elapsed: 5m 02s)" 168
   sleep 0.5
-  log "Still waiting for a runner... (elapsed: 10m 31s)"
+  log "Still waiting for a runner... (elapsed: 10m 31s)" 329
   sleep 0.5
-  log "Still waiting for a runner... (elapsed: 15m 08s)"
+  log "Still waiting for a runner... (elapsed: 15m 08s)" 277
   sleep 0.5
   echo ""
   echo -e "  ${RED}##[error]${NC} The job running on runner label '${BAD_LABEL}' has been waiting for a runner for more than 15 minutes."
