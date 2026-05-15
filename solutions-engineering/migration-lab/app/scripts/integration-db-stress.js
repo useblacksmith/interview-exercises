@@ -29,10 +29,28 @@ async function runWorker(workerId, poolSize) {
   });
 
   try {
-    await pool.query('select pg_sleep(0.12)');
-    await pool.query('create table if not exists test_events (id serial primary key, worker_id int, created_at timestamptz default now())');
+    await Promise.all(
+      Array.from({ length: poolSize }, async () => {
+        await pool.query('select pg_sleep(0.4)');
+      }),
+    );
     await pool.query('insert into test_events (worker_id) values ($1)', [workerId]);
     return { workerId, ok: true };
+  } finally {
+    await pool.end();
+  }
+}
+
+async function prepareDatabase() {
+  const pool = new Pool({
+    connectionString: connectionString(),
+    max: 1,
+    connectionTimeoutMillis: 1500,
+    idleTimeoutMillis: 1000,
+  });
+
+  try {
+    await pool.query('create table if not exists test_events (id serial primary key, worker_id int, created_at timestamptz default now())');
   } finally {
     await pool.end();
   }
@@ -45,6 +63,8 @@ async function main() {
   console.log(`starting integration suite with workers=${workers} pool_size=${poolSize}`);
   console.log(`detected_cpu_count=${os.cpus().length}`);
 
+  await prepareDatabase();
+
   const results = await Promise.allSettled(
     Array.from({ length: workers }, (_, index) => runWorker(index + 1, poolSize)),
   );
@@ -52,10 +72,8 @@ async function main() {
   const failures = results.filter((result) => result.status === 'rejected');
 
   if (failures.length > 0) {
-    console.error(`integration suite failed during database setup: ${failures.length} workers could not initialize`);
-    for (const failure of failures.slice(0, 3)) {
-      console.error(`worker setup error: ${failure.reason.message}`);
-    }
+    console.error(`integration suite failed during database setup: ${failures.length} tenants could not initialize`);
+    console.error('database setup did not become ready before the test timeout');
     process.exit(1);
   }
 
