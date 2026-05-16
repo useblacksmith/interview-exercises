@@ -8,7 +8,9 @@
     "lint": "node scripts/lint.js",
     "test:unit": "node scripts/shard-tests.js",
     "test:integration": "node scripts/integration-db-stress.js",
-    "docker:arch-check": "node scripts/docker-arch-check.js"
+    "docker:arch-check": "node scripts/docker-arch-check.js",
+    "profile:idle": "node scripts/resource-profile.js idle",
+    "profile:cpu": "node scripts/resource-profile.js cpu"
   },
   "dependencies": {
     "pg": "^8.16.3"

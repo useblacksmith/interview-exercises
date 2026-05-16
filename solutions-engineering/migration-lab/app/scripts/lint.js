@@ -7,6 +7,7 @@ const files = [
   path.join(__dirname, 'shard-tests.js'),
   path.join(__dirname, 'integration-db-stress.js'),
   path.join(__dirname, 'docker-arch-check.js'),
+  path.join(__dirname, 'resource-profile.js'),
 ];
 
 const failures = [];
