@@ -7,7 +7,7 @@
     "build": "node scripts/build.js",
     "lint": "node scripts/lint.js",
     "test:unit": "node scripts/shard-tests.js",
-    "test:integration": "node scripts/integration-db-stress.js",
+    "test:integration": "node scripts/run-integration-suite.js",
     "docker:arch-check": "node scripts/docker-arch-check.js",
     "profile:idle": "node scripts/resource-profile.js idle",
     "profile:cpu": "node scripts/resource-profile.js cpu"

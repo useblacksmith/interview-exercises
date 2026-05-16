@@ -76,8 +76,8 @@ jobs:
         run: npm run test:integration
         env:
           DATABASE_URL: postgresql://acme:acme@localhost:55432/acme_test
-          DB_STRESS_WORKERS: auto
-          DB_POOL_SIZE: 4
+          INTEGRATION_WORKERS: auto
+          APP_DB_POOL_SIZE: 4
 
   docker-build:
     name: Docker build (${{ matrix.platform }})

@@ -5,7 +5,7 @@ const files = [
   path.join(__dirname, '..', 'src', 'server.js'),
   path.join(__dirname, 'build.js'),
   path.join(__dirname, 'shard-tests.js'),
-  path.join(__dirname, 'integration-db-stress.js'),
+  path.join(__dirname, 'run-integration-suite.js'),
   path.join(__dirname, 'docker-arch-check.js'),
   path.join(__dirname, 'docker-build-workload.js'),
   path.join(__dirname, 'resource-profile.js'),
