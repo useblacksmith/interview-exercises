@@ -18,8 +18,9 @@ Please complete these steps before discussing the exercise.
 3. Install Blacksmith for the forked repository.
 4. Use the Blacksmith migration wizard to migrate `.github/workflows/acme-ci.yml`.
 5. Enable SSH access in Blacksmith settings.
-6. Run the workflow at least once on Blacksmith.
-7. Review the run in Blacksmith Run History and CI Analytics.
+6. If GitHub prompts you to approve Actions for the fork, approve it from the repository's Actions tab.
+7. Run the workflow at least once on Blacksmith.
+8. Review the run in Blacksmith Run History and CI Analytics.
 
 ## Write Notes
 
