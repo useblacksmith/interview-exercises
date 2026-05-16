@@ -87,8 +87,10 @@ jobs:
       matrix:
         include:
           - platform: linux/amd64
+            tag-suffix: linux-amd64
             runner: ubuntu-latest
           - platform: linux/arm64
+            tag-suffix: linux-arm64
             runner: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4
@@ -111,7 +113,7 @@ jobs:
           platforms: ${{ matrix.platform }}
           push: false
           load: false
-          tags: acme-payments-ci-lab:${{ matrix.platform }}
+          tags: acme-payments-ci-lab:${{ matrix.tag-suffix }}
 
   smoke-tests:
     name: Smoke tests

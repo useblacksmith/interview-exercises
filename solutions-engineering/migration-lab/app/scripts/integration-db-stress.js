@@ -17,7 +17,7 @@ function parseWorkers() {
 }
 
 function connectionString() {
-  return process.env.DATABASE_URL || 'postgresql://acme:acme@localhost:5432/acme_test';
+  return process.env.DATABASE_URL || 'postgresql://acme:acme@localhost:55432/acme_test';
 }
 
 async function runWorker(workerId, poolSize) {
