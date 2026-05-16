@@ -36,6 +36,42 @@ jobs:
       - run: npm run lint
       - run: npm run build
 
+
+  background-report:
+    name: Background report profile
+    runs-on: ubuntu-latest-16-cores
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: solutions-engineering/migration-lab/app/package-lock.json
+
+      - run: npm ci
+      - run: npm run profile:idle
+        env:
+          PROFILE_DURATION_MS: 45000
+
+  fraud-model-benchmark:
+    name: Fraud model benchmark
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: solutions-engineering/migration-lab/app/package-lock.json
+
+      - run: npm ci
+      - run: npm run profile:cpu
+        env:
+          PROFILE_DURATION_MS: 45000
+          PROFILE_CPU_WORKERS: 8
+
   unit-tests:
     name: Unit tests shard ${{ matrix.shard }}/8
     runs-on: ubuntu-latest-8-cores
