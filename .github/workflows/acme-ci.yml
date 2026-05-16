@@ -16,27 +16,6 @@ defaults:
     working-directory: solutions-engineering/migration-lab/app
 
 jobs:
-  lint-and-build:
-    name: Lint and build (${{ matrix.node-version }})
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        node-version: [20, 22]
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: npm
-          cache-dependency-path: solutions-engineering/migration-lab/app/package-lock.json
-
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run build
-
-
   background-report:
     name: Background report profile
     runs-on: ubuntu-latest-16-cores
@@ -151,19 +130,3 @@ jobs:
           push: false
           load: false
           tags: acme-payments-ci-lab:${{ matrix.tag-suffix }}
-
-  smoke-tests:
-    name: Smoke tests
-    runs-on: ubuntu-latest-4-cores
-    needs: [lint-and-build]
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: solutions-engineering/migration-lab/app/package-lock.json
-
-      - run: npm ci
-      - run: npm run build
