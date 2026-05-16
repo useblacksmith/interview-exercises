@@ -3,9 +3,6 @@ name: Acme CI
 on:
   workflow_dispatch:
   push:
-    paths:
-      - ".github/workflows/acme-ci.yml"
-      - "solutions-engineering/migration-lab/**"
   pull_request:
     paths:
       - ".github/workflows/acme-ci.yml"
