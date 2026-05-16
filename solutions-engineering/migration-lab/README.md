@@ -12,7 +12,6 @@ The repository contains a representative CI pipeline with:
 
 - Runner labels that should be migrated to Blacksmith.
 - Jobs with different compute requirements.
-- Matrix jobs.
 - Docker builds for multiple architectures.
 - Tests split across shards.
 - Integration tests that depend on Postgres.
@@ -26,11 +25,14 @@ Please complete these steps before the interview. Do not run the migration wizar
 1. Create or use a GitHub organization where you can install GitHub Apps. This can be a personal organization, a project organization, or any other organization you control.
 2. Fork this repository into that organization.
 3. Go to [app.blacksmith.sh](https://app.blacksmith.sh/) and install the Blacksmith GitHub App for the forked repository.
-4. Confirm that you can open the Blacksmith dashboard and see your organization.
+4. Confirm that you can open the Blacksmith dashboard and see your organization in the top-left organization dropdown.
 5. Enable SSH access for the organization in Blacksmith settings.
 6. If GitHub prompts you to approve Actions for the fork, approve it from the repository's Actions tab.
+7. Check out the repository locally and make sure Claude Code or Codex is working in that checkout.
 
-Success criteria for preparation: you can log into Blacksmith, select the organization that contains your fork, and see that organization in the dashboard.
+If your Blacksmith account needs additional verification, reach out by email before the interview.
+
+Success criteria for preparation: you can log into Blacksmith, select the organization that contains your fork from the top-left dropdown, and see that organization in the dashboard.
 
 Again, do not migrate the workflow before the interview. We will do that together as part of the exercise.
 
@@ -52,13 +54,8 @@ The workflow is intentionally the main surface area for the exercise. It contain
 
 You should be comfortable opening this workflow, reading the job definitions, and making changes during the interview.
 
-## What To Bring
+## Resources
 
-Come prepared to discuss:
-
-- How you would start onboarding a customer to Blacksmith.
-- Where you would look in the Blacksmith dashboard to confirm jobs are running.
-- How you would approach debugging a CI job that is slow or failing.
-- How you would communicate findings and tradeoffs to a customer.
+A Notion prep doc will be shared with you as part of the interview invite. Use that document for the customer brief and recommended reading before the interview.
 
 You do not need to solve anything before the interview.
