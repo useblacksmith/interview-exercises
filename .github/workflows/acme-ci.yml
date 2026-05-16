@@ -16,23 +16,6 @@ defaults:
     working-directory: solutions-engineering/migration-lab/app
 
 jobs:
-  background-report:
-    name: Background report profile
-    runs-on: ubuntu-latest-16-cores
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: solutions-engineering/migration-lab/app/package-lock.json
-
-      - run: npm ci
-      - run: npm run profile:idle
-        env:
-          PROFILE_DURATION_MS: 30000
-
   fraud-model-benchmark:
     name: Fraud model benchmark
     runs-on: ubuntu-latest-4-cores
@@ -50,7 +33,7 @@ jobs:
         env:
           PROFILE_CPU_TASKS: 256
           PROFILE_CPU_ITERATIONS: 9500000
-          PROFILE_CPU_WORKERS: 32
+          PROFILE_CPU_WORKERS: 8
 
   unit-tests:
     name: Unit tests shard ${{ matrix.shard }}/8
