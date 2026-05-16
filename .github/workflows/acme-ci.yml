@@ -49,7 +49,7 @@ jobs:
       - run: npm run profile:cpu
         env:
           PROFILE_CPU_TASKS: 32
-          PROFILE_CPU_ITERATIONS: 300000000
+          PROFILE_CPU_ITERATIONS: 750000000
           PROFILE_CPU_WORKERS: 16
 
   unit-tests:
