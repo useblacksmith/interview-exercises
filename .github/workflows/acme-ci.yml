@@ -35,7 +35,7 @@ jobs:
 
   fraud-model-benchmark:
     name: Fraud model benchmark
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-4-cores
     steps:
       - uses: actions/checkout@v4
 
@@ -49,7 +49,7 @@ jobs:
       - run: npm run profile:cpu
         env:
           PROFILE_CPU_TASKS: 256
-          PROFILE_CPU_ITERATIONS: 6250000
+          PROFILE_CPU_ITERATIONS: 9500000
           PROFILE_CPU_WORKERS: 32
 
   unit-tests:
@@ -105,10 +105,10 @@ jobs:
         include:
           - platform: linux/amd64
             tag-suffix: linux-amd64
-            runner: ubuntu-latest
+            runner: ubuntu-latest-4-cores
           - platform: linux/arm64
             tag-suffix: linux-arm64
-            runner: ubuntu-24.04-arm
+            runner: ubuntu-latest-4-cores
     steps:
       - uses: actions/checkout@v4
 
