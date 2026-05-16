@@ -1,4 +1,5 @@
 const os = require('os');
+const crypto = require('crypto');
 const { Worker, isMainThread, parentPort, workerData } = require('worker_threads');
 
 function durationMs() {
@@ -9,19 +10,28 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function burnCpu(ms) {
-  const end = Date.now() + ms;
-  let value = 0;
+function iterationCount() {
+  return Number(process.env.PROFILE_CPU_ITERATIONS || 45000000);
+}
 
-  while (Date.now() < end) {
-    value += Math.sqrt((value % 1000) + Math.random());
-  }
+function taskCount() {
+  return Number(process.env.PROFILE_CPU_TASKS || 32);
+}
 
-  return value;
+function runFraudScoringBatch(iterations) {
+  const output = crypto.pbkdf2Sync(
+    'acme-payments-risk-input',
+    'merchant-risk-model-v3',
+    iterations,
+    64,
+    'sha512',
+  );
+
+  return output.readUInt32BE(0);
 }
 
 if (!isMainThread) {
-  const value = burnCpu(workerData.durationMs);
+  const value = runFraudScoringBatch(workerData.iterations);
   parentPort.postMessage(value);
   return;
 }
@@ -34,24 +44,37 @@ async function runIdleProfile() {
   console.log('background report profile completed');
 }
 
-async function runCpuProfile() {
-  const duration = durationMs();
-  const workers = Number(process.env.PROFILE_CPU_WORKERS || Math.max(4, os.cpus().length * 2));
+function runCpuTask(iterations) {
+  return new Promise((resolve, reject) => {
+    const worker = new Worker(__filename, { workerData: { iterations } });
+    worker.once('message', resolve);
+    worker.once('error', reject);
+    worker.once('exit', (code) => {
+      if (code !== 0) {
+        reject(new Error(`worker exited with code ${code}`));
+      }
+    });
+  });
+}
 
-  console.log(`starting fraud model profile with workers=${workers} duration_ms=${duration}`);
+async function runCpuProfile() {
+  const workers = Number(process.env.PROFILE_CPU_WORKERS || Math.max(2, os.cpus().length));
+  const tasks = taskCount();
+  const iterations = iterationCount();
+  let nextTask = 0;
+
+  console.log(`starting fraud model profile with workers=${workers} tasks=${tasks} iterations_per_task=${iterations}`);
   console.log(`detected_cpu_count=${os.cpus().length}`);
 
+  async function runWorkerQueue() {
+    while (nextTask < tasks) {
+      nextTask += 1;
+      await runCpuTask(iterations);
+    }
+  }
+
   await Promise.all(
-    Array.from({ length: workers }, () => new Promise((resolve, reject) => {
-      const worker = new Worker(__filename, { workerData: { durationMs: duration } });
-      worker.once('message', resolve);
-      worker.once('error', reject);
-      worker.once('exit', (code) => {
-        if (code !== 0) {
-          reject(new Error(`worker exited with code ${code}`));
-        }
-      });
-    })),
+    Array.from({ length: Math.min(workers, tasks) }, () => runWorkerQueue()),
   );
 
   console.log('fraud model profile completed');
