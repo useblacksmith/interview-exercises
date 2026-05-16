@@ -1,4 +1,5 @@
 const os = require('os');
+const crypto = require('crypto');
 const { Worker, isMainThread, parentPort, workerData } = require('worker_threads');
 
 function durationMs() {
@@ -17,18 +18,20 @@ function taskCount() {
   return Number(process.env.PROFILE_CPU_TASKS || 32);
 }
 
-function burnIterations(iterations) {
-  let value = 0;
+function runFraudScoringBatch(iterations) {
+  const output = crypto.pbkdf2Sync(
+    'acme-payments-risk-input',
+    'merchant-risk-model-v3',
+    iterations,
+    64,
+    'sha512',
+  );
 
-  for (let i = 0; i < iterations; i += 1) {
-    value += Math.sqrt((value + i) % 1000);
-  }
-
-  return value;
+  return output.readUInt32BE(0);
 }
 
 if (!isMainThread) {
-  const value = burnIterations(workerData.iterations);
+  const value = runFraudScoringBatch(workerData.iterations);
   parentPort.postMessage(value);
   return;
 }
