@@ -1,12 +1,11 @@
-FROM --platform=linux/amd64 node:22-bookworm-slim
+FROM node:22-bookworm-slim
 
 WORKDIR /app
 
-COPY app/package*.json ./
+COPY app ./
+RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
 RUN npm ci --omit=dev
-
-COPY app/src ./src
-COPY app/scripts ./scripts
+RUN node scripts/docker-build-workload.js
 
 EXPOSE 3000
 
