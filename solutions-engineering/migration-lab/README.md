@@ -37,9 +37,10 @@ Blacksmith supports GitHub organizations, not personal repositories. If you do n
 3. Install Blacksmith for the forked repository.
 4. Use the Blacksmith migration wizard to migrate the GitHub Actions workflow.
 5. Enable SSH access for the organization in Blacksmith.
-6. Run the workflow at least once on Blacksmith.
-7. Review the run in Blacksmith Run History and CI Analytics.
-8. Write short notes about what changed, what worked, what failed, and what you would investigate next.
+6. If GitHub prompts you to approve Actions for the fork, approve it from the repository's Actions tab.
+7. Run the workflow at least once on Blacksmith.
+8. Review the run in Blacksmith Run History and CI Analytics.
+9. Write short notes about what changed, what worked, what failed, and what you would investigate next.
 
 ## Repository Layout
 
