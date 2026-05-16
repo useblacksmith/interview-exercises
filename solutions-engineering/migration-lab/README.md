@@ -2,96 +2,63 @@
 
 Thank you for interviewing with Blacksmith.
 
-This exercise is meant to give you a practical feel for the kind of work Solutions Engineers do with customers. You will help a fictional company migrate a GitHub Actions repository to Blacksmith, inspect CI behavior, and prepare recommendations.
-
-You can spend as much time as you would like, but the expected preparation time is about 60 to 90 minutes. If setup takes longer than that, stop and write down where you got stuck.
+This exercise is meant to give you a practical feel for the kind of work Solutions Engineers do with customers. You will help a fictional company migrate a GitHub Actions repository to Blacksmith, inspect CI behavior, make workflow changes, and explain recommendations.
 
 ## Scenario
 
-Acme Payments is migrating from GitHub-hosted runners to Blacksmith. They care about faster CI, lower spend, and a smoother debugging workflow when jobs fail.
+Acme Payments is evaluating Blacksmith for its GitHub Actions workloads. The team cares about faster CI, lower spend, and a smoother debugging workflow when jobs fail.
 
-They have a mixed CI pipeline with:
+The repository contains a representative CI pipeline with:
 
-- Standard Linux jobs.
-- Larger GitHub-hosted runner labels for heavier jobs.
-- An Arm Docker build path.
-- Unit tests split across shards.
+- Runner labels that should be migrated to Blacksmith.
+- Jobs with different compute requirements.
+- Matrix jobs.
+- Docker builds for multiple architectures.
+- Tests split across shards.
 - Integration tests that depend on Postgres.
 
-Your goal is to get the repository running on Blacksmith and come prepared to explain what you observed.
-
-## Prerequisites
-
-- A GitHub account.
-- A GitHub organization where you can install GitHub Apps.
-- An SSH key configured on your GitHub account.
-- Access to [app.blacksmith.sh](https://app.blacksmith.sh/).
-- Node.js 20 or newer if you want to run parts of the app locally.
-
-Blacksmith supports GitHub organizations, not personal repositories. If you do not already have a GitHub organization for testing, create one before starting.
+Your goal during the interview is to help Acme get started on Blacksmith, inspect the resulting CI behavior, and recommend changes.
 
 ## Preparation
 
-1. Read the prep guide in [docs/candidate-prep.md](docs/candidate-prep.md).
-2. Fork this repository into a GitHub organization that you control.
-3. Install Blacksmith for the forked repository.
-4. Use the Blacksmith migration wizard to migrate the GitHub Actions workflow.
-5. Enable SSH access for the organization in Blacksmith.
+Please complete these steps before the interview. Do not run the migration wizard before the interview.
+
+1. Create or use a GitHub organization where you can install GitHub Apps. This can be a personal organization, a project organization, or any other organization you control.
+2. Fork this repository into that organization.
+3. Go to [app.blacksmith.sh](https://app.blacksmith.sh/) and install the Blacksmith GitHub App for the forked repository.
+4. Confirm that you can open the Blacksmith dashboard and see your organization.
+5. Enable SSH access for the organization in Blacksmith settings.
 6. If GitHub prompts you to approve Actions for the fork, approve it from the repository's Actions tab.
-7. Run the workflow at least once on Blacksmith.
-8. Review the run in Blacksmith Run History and CI Analytics.
-9. Write short notes about what changed, what worked, what failed, and what you would investigate next.
 
-## Repository Layout
+Success criteria for preparation: you can log into Blacksmith, select the organization that contains your fork, and see that organization in the dashboard.
 
-```text
-solutions-engineering/migration-lab/
-  app/
-    src/
-    scripts/
-    fixtures/
-  docker/
-  docs/
-```
+Again, do not migrate the workflow before the interview. We will do that together as part of the exercise.
 
-The workflow for this lab is located at the repository root:
+## CI Workflow
+
+The GitHub Actions workflow for this lab is:
 
 ```text
 .github/workflows/acme-ci.yml
 ```
 
-The workflow starts with GitHub-hosted runner labels on purpose. Use the migration wizard rather than manually editing every `runs-on` field.
+The workflow is intentionally the main surface area for the exercise. It contains jobs named:
 
-## Deliverable
+- `Background report profile`
+- `Fraud model benchmark`
+- `Unit tests shard */8`
+- `Integration tests`
+- `Docker build (...)`
 
-Prepare a short summary covering:
+You should be comfortable opening this workflow, reading the job definitions, and making changes during the interview.
 
-- How you migrated the workflow to Blacksmith.
-- Which Blacksmith runner types you selected and why.
-- What you observed in Run History and CI Analytics.
-- What you would tell Acme Payments as next steps.
+## What To Bring
 
-You do not need to fully optimize the repository. We care more about how you investigate and explain tradeoffs than about perfect final YAML.
+Come prepared to discuss:
 
-## Useful Commands
+- How you would start onboarding a customer to Blacksmith.
+- Where you would look in the Blacksmith dashboard to confirm jobs are running.
+- How you would approach debugging a CI job that is slow or failing.
+- How you would communicate findings and tradeoffs to a customer.
 
-From this directory:
-
-```bash
-cd solutions-engineering/migration-lab/app
-npm ci
-npm run lint
-npm run build
-npm run test:unit -- --shard=1/8
-```
-
-The integration test expects Postgres to be running. The workflow starts Postgres through Docker Compose.
-
-## Useful Links
-
-- [Blacksmith Quickstart](https://docs.blacksmith.sh/introduction/quickstart)
-- [Runner Instance Types](https://docs.blacksmith.sh/blacksmith-runners/overview)
-- [CI Analytics](https://docs.blacksmith.sh/blacksmith-observability/dashboard)
-- [Run History](https://docs.blacksmith.sh/blacksmith-observability/history)
-- [Monitors](https://docs.blacksmith.sh/blacksmith-observability/monitors)
-- [SSH Access](https://docs.blacksmith.sh/blacksmith-observability/ssh-access)
+You do not need to solve anything before the interview.
