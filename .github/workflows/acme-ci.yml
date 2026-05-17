@@ -1,0 +1,116 @@
+name: Acme CI
+
+on:
+  workflow_dispatch:
+  push:
+  pull_request:
+    paths:
+      - ".github/workflows/acme-ci.yml"
+      - "solutions-engineering/migration-lab/**"
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: solutions-engineering/migration-lab/app
+
+jobs:
+  fraud-model-benchmark:
+    name: Fraud model benchmark
+    runs-on: ubuntu-latest-4-cores
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: solutions-engineering/migration-lab/app/package-lock.json
+
+      - run: npm ci
+      - run: npm run profile:cpu
+        env:
+          PROFILE_CPU_TASKS: 256
+          PROFILE_CPU_ITERATIONS: 9500000
+          PROFILE_CPU_WORKERS: 8
+
+  unit-tests:
+    name: Unit tests shard ${{ matrix.shard }}/8
+    runs-on: ubuntu-latest-8-cores
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: solutions-engineering/migration-lab/app/package-lock.json
+
+      - run: npm ci
+      - run: npm run test:unit -- --shard=${{ matrix.shard }}/8
+
+  integration-tests:
+    name: Integration tests
+    runs-on: ubuntu-latest-16-cores
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: solutions-engineering/migration-lab/app/package-lock.json
+
+      - name: Start Postgres
+        working-directory: solutions-engineering/migration-lab
+        run: docker compose -f docker/docker-compose.yml up -d --wait
+
+      - run: npm ci
+
+      - name: Run integration suite
+        run: npm run test:integration
+        env:
+          DATABASE_URL: postgresql://acme:acme@localhost:55432/acme_test
+          INTEGRATION_WORKERS: auto
+          APP_DB_POOL_SIZE: 4
+
+  docker-build:
+    name: Docker build (${{ matrix.platform }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux/amd64
+            tag-suffix: linux-amd64
+            runner: ubuntu-latest-4-cores
+          - platform: linux/arm64
+            tag-suffix: linux-arm64
+            runner: ubuntu-latest-4-cores
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: solutions-engineering/migration-lab/app/package-lock.json
+
+      - run: npm ci
+      - run: npm run docker:arch-check
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: solutions-engineering/migration-lab
+          file: solutions-engineering/migration-lab/Dockerfile
+          platforms: ${{ matrix.platform }}
+          push: false
+          load: false
+          tags: acme-payments-ci-lab:${{ matrix.tag-suffix }}

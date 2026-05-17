@@ -1,0 +1,19 @@
+{
+  "name": "acme-payments-ci-lab",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A small CI workload for the Blacksmith Solutions Engineering migration lab.",
+  "scripts": {
+    "build": "node scripts/build.js",
+    "lint": "node scripts/lint.js",
+    "test:unit": "node scripts/shard-tests.js",
+    "test:integration": "node scripts/run-integration-suite.js",
+    "docker:arch-check": "node scripts/docker-arch-check.js",
+    "profile:idle": "node scripts/resource-profile.js idle",
+    "profile:cpu": "node scripts/resource-profile.js cpu"
+  },
+  "dependencies": {
+    "pg": "^8.16.3"
+  },
+  "devDependencies": {}
+}
