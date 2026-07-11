@@ -1,0 +1,35 @@
+services:
+  app-v1:
+    build: ./target-app
+    environment:
+      APP_VERSION: v1
+      MAIL_HOST: mailpit
+      MAIL_PORT: "1025"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mailpit
+
+  app-v2:
+    build: ./target-app
+    environment:
+      APP_VERSION: v2
+      MAIL_HOST: mailpit
+      MAIL_PORT: "1025"
+      # Fault knobs (defaults shown; set to "0"/"1" to toggle individually):
+      # BUG_PERF: "1"
+      # BUG_VISUAL: "1"
+      # BUG_EMAIL: "1"
+      # BUG_NETWORK: "1"
+      # BUG_RESILIENCE: "1"
+      # PERF_DELAY_MS: "2000"
+    ports:
+      - "3001:3000"
+    depends_on:
+      - mailpit
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "8025:8025" # web UI + JSON API (/api/v1/messages)
+      - "1025:1025" # SMTP
