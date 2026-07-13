@@ -60,7 +60,6 @@ app.get("/signup", (req, res) => res.send(layout(VERSION, "Sign up", signupPage(
 app.post("/api/signup", async (req, res) => {
   const { email, name } = req.body || {};
   if (!email || !email.includes("@")) return res.status(400).json({ error: "valid email required" });
-  signups.push({ email, name, at: new Date().toISOString() });
   if (!BUGS.email) {
     try {
       await mailer.sendMail({
@@ -74,6 +73,7 @@ app.post("/api/signup", async (req, res) => {
       return res.status(502).json({ error: "email delivery failed" });
     }
   }
+  signups.push({ email, name, at: new Date().toISOString() });
   res.json({ ok: true, message: "Account created! Check your email to confirm." });
 });
 
