@@ -82,11 +82,13 @@ export const layout = (version, title, body) => `<!doctype html>
 <main>${body}</main>
 <div class="toast" id="toast" role="status"></div>
 <script>
+let toastTimer;
 function toast(msg, isError) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.className = 'toast show' + (isError ? ' error' : '');
-  setTimeout(() => t.classList.remove('show'), 4000);
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 4000);
 }
 </script>
 </body>

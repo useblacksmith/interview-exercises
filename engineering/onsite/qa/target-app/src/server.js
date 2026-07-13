@@ -31,12 +31,6 @@ const orders = [];
 const signups = [];
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-app.use((req, res, next) => {
-  res.locals.version = VERSION;
-  res.locals.bugs = BUGS;
-  next();
-});
-
 app.get("/", (req, res) => res.send(layout(VERSION, "Home", homePage(VERSION))));
 
 app.get("/products", async (req, res) => {
