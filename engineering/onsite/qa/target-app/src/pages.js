@@ -200,6 +200,7 @@ function restore() {
   document.getElementById('product').value = state.productId;
   document.getElementById('qty').value = state.qty;
   document.getElementById('address').value = state.address;
+  if (state.speed) document.getElementById('speed').value = state.speed;
   show(state.step);
 }
 function show(n) {

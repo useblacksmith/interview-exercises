@@ -82,11 +82,13 @@ app.get("/checkout", (req, res) => res.send(layout(VERSION, "Checkout", checkout
 app.post("/api/orders", async (req, res) => {
   const { items, shipping, idempotencyKey } = req.body || {};
   if (!items?.length || !shipping?.address) return res.status(400).json({ error: "items and shipping address required" });
+  await sleep(400);
+  // Dedupe check runs synchronously with the push (no await in between), so
+  // concurrent requests with the same key cannot both pass the lookup.
   if (!BUGS.resilience && idempotencyKey) {
     const existing = orders.find((o) => o.idempotencyKey === idempotencyKey);
     if (existing) return res.json({ ok: true, orderId: existing.id, duplicate: true });
   }
-  await sleep(400);
   const id = `ORD-${1000 + orders.length}`;
   const total = items.reduce((sum, it) => {
     const p = products.find((x) => x.id === it.productId);
@@ -97,6 +99,7 @@ app.post("/api/orders", async (req, res) => {
 });
 
 app.get("/api/orders", (req, res) => res.json({ orders }));
+app.get("/api/signups", (req, res) => res.json({ signups }));
 app.get("/admin/orders", (req, res) => res.send(layout(VERSION, "Orders", ordersAdminPage(orders))));
 app.get("/healthz", (req, res) => res.json({ ok: true, version: VERSION }));
 
