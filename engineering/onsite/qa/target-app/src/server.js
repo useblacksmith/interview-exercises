@@ -71,7 +71,10 @@ app.get("/products/:id", (req, res) => {
 });
 
 app.get("/signup", (req, res) => res.send(page(req, "Sign up", signupPage())));
-app.get("/login", (req, res) => res.send(page(req, "Log in", loginPage(req.query.next || "/products"))));
+app.get("/login", (req, res) => {
+  const next = typeof req.query.next === "string" && /^\/(?!\/)/.test(req.query.next) ? req.query.next : "/products";
+  res.send(page(req, "Log in", loginPage(next)));
+});
 app.get("/cart", requireLogin, (req, res) => res.send(page(req, "Cart", cartPage())));
 app.get("/checkout", requireLogin, (req, res) => {
   if (req.session.cart.length === 0) return res.redirect("/cart");
@@ -101,6 +104,7 @@ app.post("/api/signup", async (req, res) => {
       return res.status(502).json({ error: "email delivery failed" });
     }
   }
+  if (users.find((u) => u.email === email)) return res.status(409).json({ error: "an account with that email already exists" });
   users.push({ email, name, password });
   signups.push({ email, name, at: new Date().toISOString() });
   res.json({ ok: true, message: "Account created! Check your email to confirm." });

@@ -245,14 +245,20 @@ export const signupPage = () => `
 <script>
 document.getElementById('signup-form').addEventListener('submit', async (e) => {
   e.preventDefault();
+  const btn = document.querySelector('[data-testid="signup-submit"]');
+  btn.disabled = true;
   const body = {
     name: document.getElementById('name').value,
     email: document.getElementById('email').value,
     password: document.getElementById('password').value
   };
-  const res = await fetch('/api/signup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-  const data = await res.json();
-  if (res.ok) toast(data.message); else toast(data.error || 'Something went wrong', true);
+  try {
+    const res = await fetch('/api/signup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const data = await res.json();
+    if (res.ok) toast(data.message); else toast(data.error || 'Something went wrong', true);
+  } finally {
+    btn.disabled = false;
+  }
 });
 </script>
 `;
@@ -274,7 +280,7 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
   const body = { email: document.getElementById('email').value, password: document.getElementById('password').value };
   const res = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
   const data = await res.json();
-  if (res.ok) location.href = ${JSON.stringify(next)};
+  if (res.ok) location.href = ${JSON.stringify(next).replace(/</g, "\\u003c")};
   else toast(data.error || 'Login failed', true);
 });
 </script>
