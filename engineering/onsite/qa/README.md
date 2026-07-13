@@ -1,8 +1,12 @@
 # Forgeboard QA sandbox
 
-Forgeboard is a small storefront app (products, signup with confirmation email, a 3-step
-checkout, an orders admin) used as the target for the autonomous QA agent exercise. The
-full exercise brief is shared separately as a Notion doc.
+Forgeboard is a small marketplace app used as the target for the autonomous QA agent
+exercise: landing page, signup (with confirmation email) and login, a product catalog
+with a per-account cart, checkout from the cart, and an order history page. The full
+exercise brief is shared separately as a Notion doc.
+
+A demo account is seeded so the app is usable without signing up:
+`wayland@forgeboard.dev` / `anvil123`.
 
 ## The two releases
 
@@ -22,7 +26,7 @@ docker compose up --build
 ```
 
 Both app versions send email through Mailpit (SMTP on :1025). `GET /healthz` on either app
-reports its version.
+reports its version. State is in-memory; restarting a container resets users, carts, and orders.
 
 ## Agent skeleton
 
