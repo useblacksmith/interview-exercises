@@ -1,3 +1,6 @@
+const esc = (s) =>
+  String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
 const css = () => `
   :root {
     --app-background: #18191a;
@@ -107,7 +110,7 @@ export const layout = (version, title, body, { user, cartCount = 0 } = {}) => `<
   <span class="spacer"></span>
   ${user
     ? `<a class="cart-link" href="/cart" data-testid="nav-cart">Cart${cartCount ? `<span class="cart-badge" data-testid="cart-count">${cartCount}</span>` : ""}</a>
-  <span class="user">${user}</span>
+  <span class="user">${esc(user)}</span>
   <a href="#" id="logout" data-testid="nav-logout">Log out</a>`
     : `<a href="/login" data-testid="nav-login">Log in</a>
   <a href="/signup" data-testid="nav-signup">Sign up</a>`}
@@ -419,6 +422,6 @@ ${orders.length === 0 ? `<div class="empty">No orders yet. <a href="/products" s
 ${orders.map((o) => `<tr><td>${o.id}</td><td>${o.items.map((i) => {
   const p = products.find((x) => x.id === i.productId);
   return (p ? p.name : i.productId) + " × " + i.qty;
-}).join(", ")}</td><td>${o.shipping.address}</td><td class="price">$${o.total}</td><td>${new Date(o.at).toLocaleString()}</td></tr>`).join("")}
+}).join(", ")}</td><td>${esc(o.shipping.address)}</td><td class="price">$${o.total}</td><td>${new Date(o.at).toLocaleString()}</td></tr>`).join("")}
 </table>`}
 `;

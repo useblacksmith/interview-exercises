@@ -176,6 +176,7 @@ app.post("/api/orders", requireApiLogin, async (req, res) => {
   const { shipping, idempotencyKey } = req.body || {};
   if (!shipping?.address) return res.status(400).json({ error: "shipping address required" });
   if (req.session.cart.length === 0) return res.status(400).json({ error: "cart is empty" });
+  const items = req.session.cart.map((it) => ({ ...it }));
   await sleep(400);
   // Dedupe check runs synchronously with the push (no await in between), so
   // concurrent requests with the same key cannot both pass the lookup.
@@ -183,7 +184,6 @@ app.post("/api/orders", requireApiLogin, async (req, res) => {
     const existing = orders.find((o) => o.idempotencyKey === idempotencyKey);
     if (existing) return res.json({ ok: true, orderId: existing.id, duplicate: true });
   }
-  const items = req.session.cart.map((it) => ({ ...it }));
   const total = items.reduce((sum, it) => {
     const p = products.find((x) => x.id === it.productId);
     return sum + (p ? p.price * it.qty : 0);
