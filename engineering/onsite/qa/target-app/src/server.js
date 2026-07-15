@@ -35,6 +35,8 @@ const orders = [];
 const signups = [];
 const captchas = new Map(); // id -> { solved, createdAt }
 const CAPTCHA_TTL_MS = 5 * 60 * 1000;
+const CAPTCHA_TRACK_MAX = 240; // must match MAX in pages.js slider track
+const CAPTCHA_MAX_STEP = 40; // largest allowed jump between consecutive pointer samples
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const parseCookies = (req) =>
@@ -152,8 +154,17 @@ app.post("/api/captcha/verify", (req, res) => {
   if (!challenge || Date.now() - challenge.createdAt > CAPTCHA_TTL_MS) {
     return res.status(400).json({ error: "unknown or expired challenge" });
   }
-  // Require drag telemetry: a run of intermediate pointer positions, not a jump.
-  if (!Array.isArray(samples) || samples.length < 8 || samples.some((n) => typeof n !== "number")) {
+  // Require drag telemetry: a run of intermediate pointer positions ending at the
+  // right edge, each step no larger than a real drag could produce (rejects jumps
+  // and fabricated sample arrays that skip the actual pointer movement).
+  const isValidDrag =
+    Array.isArray(samples) &&
+    samples.length >= 8 &&
+    samples.every((n) => typeof n === "number" && Number.isFinite(n)) &&
+    samples[0] <= 20 &&
+    samples[samples.length - 1] >= CAPTCHA_TRACK_MAX - 4 &&
+    samples.every((n, i) => i === 0 || (n - samples[i - 1] >= -5 && n - samples[i - 1] <= CAPTCHA_MAX_STEP));
+  if (!isValidDrag) {
     return res.status(400).json({ error: "challenge not completed" });
   }
   challenge.solved = true;

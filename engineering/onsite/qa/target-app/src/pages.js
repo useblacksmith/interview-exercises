@@ -290,6 +290,7 @@ export const loginPage = (next, captchaRequired = false) => `
 <script>
 let captchaId = null;
 let captchaSolved = false;
+let captchaVerifyPromise = null;
 async function loadCaptcha() {
   const res = await fetch('/api/captcha/new');
   const data = await res.json();
@@ -321,19 +322,23 @@ if (document.getElementById('captcha-block')) {
     handle.style.left = x + 'px';
     document.getElementById('captcha-fill').style.width = (x + 44) + 'px';
   });
-  handle.addEventListener('pointerup', async () => {
+  handle.addEventListener('pointerup', () => {
     if (!dragging) return;
     dragging = false;
     handle.style.cursor = 'grab';
     const x = parseFloat(handle.style.left) || 0;
     if (x >= MAX - 4) {
-      const res = await fetch('/api/captcha/verify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ captchaId, samples }) });
-      if (res.ok) {
-        captchaSolved = true;
-        document.getElementById('captcha-label').textContent = 'Verified \u2713';
-        document.getElementById('captcha-track').style.borderColor = '#b8d44a';
-        return;
-      }
+      captchaVerifyPromise = fetch('/api/captcha/verify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ captchaId, samples }) })
+        .then((res) => {
+          if (res.ok) {
+            captchaSolved = true;
+            document.getElementById('captcha-label').textContent = 'Verified \u2713';
+            document.getElementById('captcha-track').style.borderColor = '#b8d44a';
+          } else {
+            loadCaptcha();
+          }
+        });
+      return;
     }
     loadCaptcha();
   });
@@ -344,6 +349,13 @@ if (toggle) toggle.addEventListener('change', () => {
 });
 document.getElementById('login-form').addEventListener('submit', async (e) => {
   e.preventDefault();
+  if (document.getElementById('captcha-block')) {
+    if (captchaVerifyPromise) await captchaVerifyPromise;
+    if (!captchaSolved) {
+      toast('Complete the slider verification before logging in', true);
+      return;
+    }
+  }
   const body = { email: document.getElementById('email').value, password: document.getElementById('password').value };
   if (captchaId) body.captchaId = captchaId;
   const res = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
