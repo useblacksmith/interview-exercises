@@ -151,7 +151,7 @@ app.get("/api/captcha/new", (req, res) => {
 app.post("/api/captcha/verify", (req, res) => {
   const { captchaId, samples } = req.body || {};
   const challenge = captchas.get(captchaId);
-  if (!challenge || Date.now() - challenge.createdAt > CAPTCHA_TTL_MS) {
+  if (!challenge || Date.now() - challenge.createdAt >= CAPTCHA_TTL_MS) {
     return res.status(400).json({ error: "unknown or expired challenge" });
   }
   // Require drag telemetry: a run of intermediate pointer positions ending at the
