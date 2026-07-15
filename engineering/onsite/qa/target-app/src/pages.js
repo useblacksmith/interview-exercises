@@ -266,7 +266,7 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
 </script>
 `;
 
-export const loginPage = (next) => `
+export const loginPage = (next, captchaRequired = false) => `
 <h1>Log in</h1>
 <p class="subtitle">Welcome back to the forge.</p>
 <form class="auth" id="login-form">
@@ -274,17 +274,47 @@ export const loginPage = (next) => `
   <input id="email" name="email" type="email" placeholder="you@example.com" required>
   <label for="password">Password</label>
   <input id="password" name="password" type="password" required>
+  ${captchaRequired ? `
+  <div id="captcha-block" data-testid="captcha-block" style="margin-top:12px">
+    <label for="captcha-code">Human verification: enter the code shown</label>
+    <img id="captcha-image" data-testid="captcha-image" alt="CAPTCHA challenge" style="display:block;margin:6px 0;border-radius:8px">
+    <input id="captcha-code" name="captcha-code" autocomplete="off" placeholder="5-digit code" required>
+    <p class="hint"><a href="#" id="captcha-refresh" style="color:inherit">Get a new code</a></p>
+  </div>` : `
+  <p class="hint"><label style="cursor:pointer"><input type="checkbox" id="captcha-toggle" data-testid="captcha-toggle" style="width:auto;margin-right:6px">Protect this login with a CAPTCHA</label></p>`}
   <p><button type="submit" data-testid="login-submit">Log in</button></p>
   <p class="hint">Demo user: <code>wayland@forgeboard.dev</code> / <code>anvil123</code></p>
 </form>
 <script>
+let captchaId = null;
+async function loadCaptcha() {
+  const res = await fetch('/api/captcha/new');
+  const data = await res.json();
+  captchaId = data.id;
+  document.getElementById('captcha-image').src = '/api/captcha/' + captchaId + '.svg';
+}
+if (document.getElementById('captcha-block')) {
+  loadCaptcha();
+  document.getElementById('captcha-refresh').addEventListener('click', (e) => { e.preventDefault(); loadCaptcha(); });
+}
+const toggle = document.getElementById('captcha-toggle');
+if (toggle) toggle.addEventListener('change', () => {
+  if (toggle.checked) location.href = '/login?captcha=1&next=' + encodeURIComponent(${JSON.stringify(next).replace(/</g, "\\u003c")});
+});
 document.getElementById('login-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const body = { email: document.getElementById('email').value, password: document.getElementById('password').value };
+  if (captchaId) {
+    body.captchaId = captchaId;
+    body.captchaCode = document.getElementById('captcha-code').value;
+  }
   const res = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
   const data = await res.json();
   if (res.ok) location.href = ${JSON.stringify(next).replace(/</g, "\\u003c")};
-  else toast(data.error || 'Login failed', true);
+  else {
+    toast(data.error || 'Login failed', true);
+    if (document.getElementById('captcha-block')) loadCaptcha();
+  }
 });
 </script>
 `;

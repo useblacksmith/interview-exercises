@@ -33,6 +33,8 @@ const users = [{ email: "wayland@forgeboard.dev", name: "Wayland Smith", passwor
 const sessions = new Map(); // token -> { email, cart: [{productId, qty}] }
 const orders = [];
 const signups = [];
+const captchas = new Map(); // id -> { code, createdAt }
+const CAPTCHA_TTL_MS = 5 * 60 * 1000;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const parseCookies = (req) =>
@@ -73,7 +75,9 @@ app.get("/products/:id", (req, res) => {
 app.get("/signup", (req, res) => res.send(page(req, "Sign up", signupPage())));
 app.get("/login", (req, res) => {
   const next = typeof req.query.next === "string" && /^\/(?!\/)/.test(req.query.next) ? req.query.next : "/products";
-  res.send(page(req, "Log in", loginPage(next)));
+  if (req.query.captcha === "1") res.setHeader("Set-Cookie", "fb_captcha=1; Path=/; HttpOnly; SameSite=Lax");
+  const captchaRequired = req.query.captcha === "1" || parseCookies(req).fb_captcha === "1";
+  res.send(page(req, "Log in", loginPage(next, captchaRequired)));
 });
 app.get("/cart", requireLogin, (req, res) => res.send(page(req, "Cart", cartPage())));
 app.get("/checkout", requireLogin, (req, res) => {
@@ -111,13 +115,70 @@ app.post("/api/signup", async (req, res) => {
 });
 
 app.post("/api/login", (req, res) => {
-  const { email, password } = req.body || {};
+  const { email, password, captchaId, captchaCode } = req.body || {};
+  const captchaRequired = parseCookies(req).fb_captcha === "1";
+  if (captchaRequired) {
+    const challenge = captchas.get(captchaId);
+    captchas.delete(captchaId); // single use
+    const fresh = challenge && Date.now() - challenge.createdAt < CAPTCHA_TTL_MS;
+    if (!fresh || challenge.code !== String(captchaCode || "").trim()) {
+      return res.status(401).json({ error: "CAPTCHA verification failed" });
+    }
+  }
   const user = users.find((u) => u.email === email && u.password === password);
   if (!user) return res.status(401).json({ error: "invalid email or password" });
   const token = crypto.randomBytes(16).toString("hex");
   sessions.set(token, { email: user.email, cart: [] });
-  res.setHeader("Set-Cookie", `fb_session=${token}; Path=/; HttpOnly; SameSite=Lax`);
+  const cookies = [`fb_session=${token}; Path=/; HttpOnly; SameSite=Lax`];
+  if (captchaRequired) cookies.push("fb_captcha=; Path=/; Max-Age=0");
+  res.setHeader("Set-Cookie", cookies);
   res.json({ ok: true, email: user.email });
+});
+
+// ---------- captcha ----------
+// The code is stored server-side only and rendered as SVG line segments,
+// so it never appears as text in the DOM, the page source, or an API body.
+
+const SEGMENTS = {
+  a: [5, 5, 35, 5], b: [35, 5, 35, 35], c: [35, 35, 35, 65], d: [5, 65, 35, 65],
+  e: [5, 35, 5, 65], f: [5, 5, 5, 35], g: [5, 35, 35, 35]
+};
+const DIGIT_SEGMENTS = {
+  0: "abcdef", 1: "bc", 2: "abged", 3: "abgcd", 4: "fgbc",
+  5: "afgcd", 6: "afgedc", 7: "abc", 8: "abcdefg", 9: "abfgcd"
+};
+
+const captchaSvg = (code) => {
+  const jitter = () => (Math.random() - 0.5) * 6;
+  const digits = [...code].map((d, i) => {
+    const x = 15 + i * 50;
+    const rot = (Math.random() - 0.5) * 24;
+    const lines = [...DIGIT_SEGMENTS[d]].map((s) => {
+      const [x1, y1, x2, y2] = SEGMENTS[s];
+      return `<line x1="${x1 + jitter()}" y1="${y1 + jitter()}" x2="${x2 + jitter()}" y2="${y2 + jitter()}"/>`;
+    }).join("");
+    return `<g transform="translate(${x},15) rotate(${rot} 20 35)" stroke="#e8e4dc" stroke-width="4" stroke-linecap="round">${lines}</g>`;
+  }).join("");
+  const noise = Array.from({ length: 6 }, () => {
+    const y1 = 10 + Math.random() * 80, y2 = 10 + Math.random() * 80;
+    return `<line x1="0" y1="${y1}" x2="280" y2="${y2}" stroke="#6b675f" stroke-width="1.5"/>`;
+  }).join("");
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="280" height="100" viewBox="0 0 280 100"><rect width="280" height="100" fill="#1c1a17" rx="8"/>${noise}${digits}</svg>`;
+};
+
+app.get("/api/captcha/new", (req, res) => {
+  const id = crypto.randomBytes(8).toString("hex");
+  const code = Array.from({ length: 5 }, () => Math.floor(Math.random() * 10)).join("");
+  captchas.set(id, { code, createdAt: Date.now() });
+  res.json({ id });
+});
+
+app.get("/api/captcha/:id.svg", (req, res) => {
+  const challenge = captchas.get(req.params.id);
+  if (!challenge) return res.status(404).send("unknown challenge");
+  res.setHeader("Content-Type", "image/svg+xml");
+  res.setHeader("Cache-Control", "no-store");
+  res.send(captchaSvg(challenge.code));
 });
 
 app.post("/api/logout", (req, res) => {
