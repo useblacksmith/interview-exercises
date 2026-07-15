@@ -337,6 +337,9 @@ if (document.getElementById('captcha-block')) {
           } else {
             loadCaptcha();
           }
+        })
+        .catch(() => {
+          loadCaptcha();
         });
       return;
     }
@@ -363,7 +366,10 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
   if (res.ok) location.href = ${JSON.stringify(next).replace(/</g, "\\u003c")};
   else {
     toast(data.error || 'Login failed', true);
-    if (document.getElementById('captcha-block')) loadCaptcha();
+    if (document.getElementById('captcha-block')) {
+      captchaSolved = false;
+      loadCaptcha();
+    }
   }
 });
 </script>
