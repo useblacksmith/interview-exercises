@@ -292,10 +292,13 @@ let captchaId = null;
 let captchaSolved = false;
 let captchaVerifyPromise = null;
 async function loadCaptcha() {
+  // Invalidate the old challenge synchronously so nothing submits a consumed
+  // captchaId while the replacement is still being fetched.
+  captchaId = null;
+  captchaSolved = false;
   const res = await fetch('/api/captcha/new');
   const data = await res.json();
   captchaId = data.id;
-  captchaSolved = false;
   const handle = document.getElementById('captcha-handle');
   handle.style.left = '0px';
   document.getElementById('captcha-fill').style.width = '44px';
@@ -366,11 +369,7 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
   if (res.ok) location.href = ${JSON.stringify(next).replace(/</g, "\\u003c")};
   else {
     toast(data.error || 'Login failed', true);
-    if (document.getElementById('captcha-block')) {
-      captchaSolved = false;
-      captchaId = null;
-      loadCaptcha();
-    }
+    if (document.getElementById('captcha-block')) loadCaptcha();
   }
 });
 </script>
