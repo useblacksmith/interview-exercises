@@ -368,6 +368,7 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
     toast(data.error || 'Login failed', true);
     if (document.getElementById('captcha-block')) {
       captchaSolved = false;
+      captchaId = null;
       loadCaptcha();
     }
   }
