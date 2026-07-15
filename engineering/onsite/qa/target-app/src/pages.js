@@ -276,10 +276,12 @@ export const loginPage = (next, captchaRequired = false) => `
   <input id="password" name="password" type="password" required>
   ${captchaRequired ? `
   <div id="captcha-block" data-testid="captcha-block" style="margin-top:12px">
-    <label for="captcha-code">Human verification: enter the code shown</label>
-    <img id="captcha-image" data-testid="captcha-image" alt="CAPTCHA challenge" style="display:block;margin:6px 0;border-radius:8px">
-    <input id="captcha-code" name="captcha-code" autocomplete="off" placeholder="5-digit code" required>
-    <p class="hint"><a href="#" id="captcha-refresh" style="color:inherit">Get a new code</a></p>
+    <label>Human verification: drag the slider all the way to the right</label>
+    <div id="captcha-track" data-testid="captcha-track" style="position:relative;width:280px;height:44px;margin:8px 0;background:#1c1a17;border:1px solid #3a372f;border-radius:22px;user-select:none">
+      <div id="captcha-fill" style="position:absolute;left:0;top:0;bottom:0;width:44px;background:#2e2b25;border-radius:22px"></div>
+      <div id="captcha-label" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#8a857a;font-size:13px;pointer-events:none">Slide to verify &rarr;</div>
+      <div id="captcha-handle" data-testid="captcha-handle" style="position:absolute;left:0;top:2px;width:40px;height:40px;background:#e8e4dc;border-radius:20px;cursor:grab;display:flex;align-items:center;justify-content:center;color:#1c1a17;font-weight:bold">&#8594;</div>
+    </div>
   </div>` : `
   <p class="hint"><label style="cursor:pointer"><input type="checkbox" id="captcha-toggle" data-testid="captcha-toggle" style="width:auto;margin-right:6px">Protect this login with a CAPTCHA</label></p>`}
   <p><button type="submit" data-testid="login-submit">Log in</button></p>
@@ -287,15 +289,54 @@ export const loginPage = (next, captchaRequired = false) => `
 </form>
 <script>
 let captchaId = null;
+let captchaSolved = false;
 async function loadCaptcha() {
   const res = await fetch('/api/captcha/new');
   const data = await res.json();
   captchaId = data.id;
-  document.getElementById('captcha-image').src = '/api/captcha/' + captchaId + '.svg';
+  captchaSolved = false;
+  const handle = document.getElementById('captcha-handle');
+  handle.style.left = '0px';
+  document.getElementById('captcha-fill').style.width = '44px';
+  document.getElementById('captcha-label').textContent = 'Slide to verify \u2192';
+  document.getElementById('captcha-track').style.borderColor = '#3a372f';
 }
 if (document.getElementById('captcha-block')) {
   loadCaptcha();
-  document.getElementById('captcha-refresh').addEventListener('click', (e) => { e.preventDefault(); loadCaptcha(); });
+  const track = document.getElementById('captcha-track');
+  const handle = document.getElementById('captcha-handle');
+  const MAX = 240; // track 280 - handle 40
+  let dragging = false, samples = [];
+  handle.addEventListener('pointerdown', (e) => {
+    if (captchaSolved) return;
+    dragging = true; samples = [];
+    handle.setPointerCapture(e.pointerId);
+    handle.style.cursor = 'grabbing';
+  });
+  handle.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+    const rect = track.getBoundingClientRect();
+    const x = Math.max(0, Math.min(MAX, e.clientX - rect.left - 20));
+    samples.push(x);
+    handle.style.left = x + 'px';
+    document.getElementById('captcha-fill').style.width = (x + 44) + 'px';
+  });
+  handle.addEventListener('pointerup', async () => {
+    if (!dragging) return;
+    dragging = false;
+    handle.style.cursor = 'grab';
+    const x = parseFloat(handle.style.left) || 0;
+    if (x >= MAX - 4) {
+      const res = await fetch('/api/captcha/verify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ captchaId, samples }) });
+      if (res.ok) {
+        captchaSolved = true;
+        document.getElementById('captcha-label').textContent = 'Verified \u2713';
+        document.getElementById('captcha-track').style.borderColor = '#b8d44a';
+        return;
+      }
+    }
+    loadCaptcha();
+  });
 }
 const toggle = document.getElementById('captcha-toggle');
 if (toggle) toggle.addEventListener('change', () => {
@@ -304,10 +345,7 @@ if (toggle) toggle.addEventListener('change', () => {
 document.getElementById('login-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const body = { email: document.getElementById('email').value, password: document.getElementById('password').value };
-  if (captchaId) {
-    body.captchaId = captchaId;
-    body.captchaCode = document.getElementById('captcha-code').value;
-  }
+  if (captchaId) body.captchaId = captchaId;
   const res = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
   const data = await res.json();
   if (res.ok) location.href = ${JSON.stringify(next).replace(/</g, "\\u003c")};

@@ -33,7 +33,7 @@ const users = [{ email: "wayland@forgeboard.dev", name: "Wayland Smith", passwor
 const sessions = new Map(); // token -> { email, cart: [{productId, qty}] }
 const orders = [];
 const signups = [];
-const captchas = new Map(); // id -> { code, createdAt }
+const captchas = new Map(); // id -> { solved, createdAt }
 const CAPTCHA_TTL_MS = 5 * 60 * 1000;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -115,14 +115,14 @@ app.post("/api/signup", async (req, res) => {
 });
 
 app.post("/api/login", (req, res) => {
-  const { email, password, captchaId, captchaCode } = req.body || {};
+  const { email, password, captchaId } = req.body || {};
   const captchaRequired = parseCookies(req).fb_captcha === "1";
   if (captchaRequired) {
     const challenge = captchas.get(captchaId);
     captchas.delete(captchaId); // single use
     const fresh = challenge && Date.now() - challenge.createdAt < CAPTCHA_TTL_MS;
-    if (!fresh || challenge.code !== String(captchaCode || "").trim()) {
-      return res.status(401).json({ error: "CAPTCHA verification failed" });
+    if (!fresh || !challenge.solved) {
+      return res.status(401).json({ error: "CAPTCHA verification failed: complete the slider challenge" });
     }
   }
   const user = users.find((u) => u.email === email && u.password === password);
@@ -136,49 +136,28 @@ app.post("/api/login", (req, res) => {
 });
 
 // ---------- captcha ----------
-// The code is stored server-side only and rendered as SVG line segments,
-// so it never appears as text in the DOM, the page source, or an API body.
-
-const SEGMENTS = {
-  a: [5, 5, 35, 5], b: [35, 5, 35, 35], c: [35, 35, 35, 65], d: [5, 65, 35, 65],
-  e: [5, 35, 5, 65], f: [5, 5, 5, 35], g: [5, 35, 35, 35]
-};
-const DIGIT_SEGMENTS = {
-  0: "abcdef", 1: "bc", 2: "abged", 3: "abgcd", 4: "fgbc",
-  5: "afgcd", 6: "afgedc", 7: "abc", 8: "abcdefg", 9: "abfgcd"
-};
-
-const captchaSvg = (code) => {
-  const jitter = () => (Math.random() - 0.5) * 6;
-  const digits = [...code].map((d, i) => {
-    const x = 15 + i * 50;
-    const rot = (Math.random() - 0.5) * 24;
-    const lines = [...DIGIT_SEGMENTS[d]].map((s) => {
-      const [x1, y1, x2, y2] = SEGMENTS[s];
-      return `<line x1="${x1 + jitter()}" y1="${y1 + jitter()}" x2="${x2 + jitter()}" y2="${y2 + jitter()}"/>`;
-    }).join("");
-    return `<g transform="translate(${x},15) rotate(${rot} 20 35)" stroke="#e8e4dc" stroke-width="4" stroke-linecap="round">${lines}</g>`;
-  }).join("");
-  const noise = Array.from({ length: 6 }, () => {
-    const y1 = 10 + Math.random() * 80, y2 = 10 + Math.random() * 80;
-    return `<line x1="0" y1="${y1}" x2="280" y2="${y2}" stroke="#6b675f" stroke-width="1.5"/>`;
-  }).join("");
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="280" height="100" viewBox="0 0 280 100"><rect width="280" height="100" fill="#1c1a17" rx="8"/>${noise}${digits}</svg>`;
-};
+// Slide-to-verify challenge. Solving requires a real pointer drag (mousedown,
+// continuous mousemove, mouseup) on the handle; a click or a form fill cannot
+// complete it. The solved flag lives server-side and is checked at login.
 
 app.get("/api/captcha/new", (req, res) => {
   const id = crypto.randomBytes(8).toString("hex");
-  const code = Array.from({ length: 5 }, () => Math.floor(Math.random() * 10)).join("");
-  captchas.set(id, { code, createdAt: Date.now() });
+  captchas.set(id, { solved: false, createdAt: Date.now() });
   res.json({ id });
 });
 
-app.get("/api/captcha/:id.svg", (req, res) => {
-  const challenge = captchas.get(req.params.id);
-  if (!challenge) return res.status(404).send("unknown challenge");
-  res.setHeader("Content-Type", "image/svg+xml");
-  res.setHeader("Cache-Control", "no-store");
-  res.send(captchaSvg(challenge.code));
+app.post("/api/captcha/verify", (req, res) => {
+  const { captchaId, samples } = req.body || {};
+  const challenge = captchas.get(captchaId);
+  if (!challenge || Date.now() - challenge.createdAt > CAPTCHA_TTL_MS) {
+    return res.status(400).json({ error: "unknown or expired challenge" });
+  }
+  // Require drag telemetry: a run of intermediate pointer positions, not a jump.
+  if (!Array.isArray(samples) || samples.length < 8 || samples.some((n) => typeof n !== "number")) {
+    return res.status(400).json({ error: "challenge not completed" });
+  }
+  challenge.solved = true;
+  res.json({ ok: true });
 });
 
 app.post("/api/logout", (req, res) => {

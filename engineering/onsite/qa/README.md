@@ -33,9 +33,10 @@ reports its version. State is in-memory; restarting a container resets users, ca
 The login page has an optional CAPTCHA for exercising human takeover: tick
 "Protect this login with a CAPTCHA" on `/login`, or open `/login?captcha=1`
 directly. The requirement then sticks (cookie) until a login passes it. The
-code is stored server-side and rendered as SVG line segments, so it never
-appears as text in the DOM or in any API response — an agent that can only
-read the page cannot solve it, but a human at the browser can.
+challenge is a slide-to-verify widget: completing it takes a real pointer drag
+(press, continuous movement, release), which an agent limited to click/fill
+tools cannot perform no matter what it sees — but a human at the browser can.
+The solved state is tracked server-side and checked at login.
 
 ## Agent skeleton
 
