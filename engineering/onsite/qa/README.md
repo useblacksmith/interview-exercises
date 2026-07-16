@@ -28,6 +28,16 @@ docker compose up --build
 Both app versions send email through Mailpit (SMTP on :1025). `GET /healthz` on either app
 reports its version. State is in-memory; restarting a container resets users, carts, and orders.
 
+## CAPTCHA mode (human-in-the-loop exercise)
+
+The login page has an optional CAPTCHA for exercising human takeover: tick
+"Protect this login with a CAPTCHA" on `/login`, or open `/login?captcha=1`
+directly. The requirement then sticks (cookie) until a login passes it. The
+challenge is a slide-to-verify widget: completing it takes a real pointer drag
+(press, continuous movement, release), which an agent limited to click/fill
+tools cannot perform no matter what it sees — but a human at the browser can.
+The solved state is tracked server-side and checked at login.
+
 ## Agent skeleton
 
 `agent/` has Playwright installed and a working example (`npm run example`) that visits the

@@ -33,6 +33,10 @@ const users = [{ email: "wayland@forgeboard.dev", name: "Wayland Smith", passwor
 const sessions = new Map(); // token -> { email, cart: [{productId, qty}] }
 const orders = [];
 const signups = [];
+const captchas = new Map(); // id -> { solved, createdAt }
+const CAPTCHA_TTL_MS = 5 * 60 * 1000;
+const CAPTCHA_TRACK_MAX = 240; // must match MAX in pages.js slider track
+const CAPTCHA_MAX_STEP = 40; // largest allowed jump between consecutive pointer samples
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const parseCookies = (req) =>
@@ -73,7 +77,9 @@ app.get("/products/:id", (req, res) => {
 app.get("/signup", (req, res) => res.send(page(req, "Sign up", signupPage())));
 app.get("/login", (req, res) => {
   const next = typeof req.query.next === "string" && /^\/(?!\/)/.test(req.query.next) ? req.query.next : "/products";
-  res.send(page(req, "Log in", loginPage(next)));
+  if (req.query.captcha === "1") res.setHeader("Set-Cookie", "fb_captcha=1; Path=/; HttpOnly; SameSite=Lax");
+  const captchaRequired = req.query.captcha === "1" || parseCookies(req).fb_captcha === "1";
+  res.send(page(req, "Log in", loginPage(next, captchaRequired)));
 });
 app.get("/cart", requireLogin, (req, res) => res.send(page(req, "Cart", cartPage())));
 app.get("/checkout", requireLogin, (req, res) => {
@@ -111,13 +117,58 @@ app.post("/api/signup", async (req, res) => {
 });
 
 app.post("/api/login", (req, res) => {
-  const { email, password } = req.body || {};
+  const { email, password, captchaId } = req.body || {};
+  const captchaRequired = parseCookies(req).fb_captcha === "1";
+  if (captchaRequired) {
+    const challenge = captchas.get(captchaId);
+    captchas.delete(captchaId); // single use
+    const fresh = challenge && Date.now() - challenge.createdAt < CAPTCHA_TTL_MS;
+    if (!fresh || !challenge.solved) {
+      return res.status(401).json({ error: "CAPTCHA verification failed: complete the slider challenge" });
+    }
+  }
   const user = users.find((u) => u.email === email && u.password === password);
   if (!user) return res.status(401).json({ error: "invalid email or password" });
   const token = crypto.randomBytes(16).toString("hex");
   sessions.set(token, { email: user.email, cart: [] });
-  res.setHeader("Set-Cookie", `fb_session=${token}; Path=/; HttpOnly; SameSite=Lax`);
+  const cookies = [`fb_session=${token}; Path=/; HttpOnly; SameSite=Lax`];
+  if (captchaRequired) cookies.push("fb_captcha=; Path=/; Max-Age=0");
+  res.setHeader("Set-Cookie", cookies);
   res.json({ ok: true, email: user.email });
+});
+
+// ---------- captcha ----------
+// Slide-to-verify challenge. Solving requires a real pointer drag (mousedown,
+// continuous mousemove, mouseup) on the handle; a click or a form fill cannot
+// complete it. The solved flag lives server-side and is checked at login.
+
+app.get("/api/captcha/new", (req, res) => {
+  const id = crypto.randomBytes(8).toString("hex");
+  captchas.set(id, { solved: false, createdAt: Date.now() });
+  res.json({ id });
+});
+
+app.post("/api/captcha/verify", (req, res) => {
+  const { captchaId, samples } = req.body || {};
+  const challenge = captchas.get(captchaId);
+  if (!challenge || Date.now() - challenge.createdAt >= CAPTCHA_TTL_MS) {
+    return res.status(400).json({ error: "unknown or expired challenge" });
+  }
+  // Require drag telemetry: a run of intermediate pointer positions ending at the
+  // right edge, each step no larger than a real drag could produce (rejects jumps
+  // and fabricated sample arrays that skip the actual pointer movement).
+  const isValidDrag =
+    Array.isArray(samples) &&
+    samples.length >= 8 &&
+    samples.every((n) => typeof n === "number" && Number.isFinite(n)) &&
+    samples[0] <= 20 &&
+    samples[samples.length - 1] >= CAPTCHA_TRACK_MAX - 4 &&
+    samples.every((n, i) => i === 0 || (n - samples[i - 1] >= -5 && n - samples[i - 1] <= CAPTCHA_MAX_STEP));
+  if (!isValidDrag) {
+    return res.status(400).json({ error: "challenge not completed" });
+  }
+  challenge.solved = true;
+  res.json({ ok: true });
 });
 
 app.post("/api/logout", (req, res) => {
