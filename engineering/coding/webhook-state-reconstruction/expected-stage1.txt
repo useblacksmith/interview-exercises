@@ -1,0 +1,10 @@
+1001 status=completed labels=blacksmith-4vcpu-ubuntu-2404 started_at=2026-08-20T14:00:10Z completed_at=2026-08-20T14:05:10Z conclusion=success duration_s=300
+1002 status=completed labels=blacksmith-8vcpu-ubuntu-2404 started_at=2026-08-20T14:00:20Z completed_at=2026-08-20T14:04:50Z conclusion=failure duration_s=270
+1003 status=completed labels=blacksmith-2vcpu-ubuntu-2204 started_at=2026-08-20T14:00:30Z completed_at=2026-08-20T14:02:33Z conclusion=success duration_s=123
+1004 status=in_progress labels=blacksmith-4vcpu-ubuntu-2404-arm started_at=2026-08-20T14:01:00Z completed_at=2026-08-20T14:02:00Z conclusion=success duration_s=-
+1005 status=completed labels=- started_at=2026-08-20T14:01:00Z completed_at=2026-08-20T14:06:10Z conclusion=success duration_s=310
+1006 status=completed labels=- started_at=2026-08-20T14:01:12Z completed_at=- conclusion=- duration_s=-
+1007 status=completed labels=blacksmith-4vcpu-ubuntu-2404 started_at=2026-08-20T14:02:28Z completed_at=2026-08-20T14:03:38Z conclusion=cancelled duration_s=70
+1008 status=completed labels=blacksmith-2vcpu-ubuntu-2204 started_at=2026-08-20T14:04:10Z completed_at=2026-08-20T14:08:40Z conclusion=success duration_s=270
+1009 status=in_progress labels=blacksmith-2vcpu-ubuntu-2204 started_at=2026-08-20T14:03:05Z completed_at=- conclusion=- duration_s=-
+skipped_malformed=1
