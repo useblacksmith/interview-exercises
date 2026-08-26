@@ -1,0 +1,26 @@
+{"weights": {"acme": 1, "umbrella": 2, "initech": 1}, "running": {"acme": 6, "umbrella": 0, "initech": 2}}
+{"id": "acme-nightly", "org": "acme", "vcpus": 16, "qos": "low", "queued_at": "2026-08-26T08:00:00Z"}
+{"id": "initech-batch", "org": "initech", "vcpus": 4, "qos": "low", "queued_at": "2026-08-26T08:30:00Z"}
+{"id": "acme-01", "org": "acme", "vcpus": 4, "qos": "regular", "queued_at": "2026-08-26T09:00:00Z"}
+{"id": "umbrella-scrub", "org": "umbrella", "vcpus": 2, "qos": "low", "queued_at": "2026-08-26T09:00:00Z"}
+{"id": "acme-02", "org": "acme", "vcpus": 4, "qos": "regular", "queued_at": "2026-08-26T09:00:10Z"}
+{"id": "acme-03", "org": "acme", "vcpus": 4, "qos": "regular", "queued_at": "2026-08-26T09:00:20Z"}
+{"id": "acme-04", "org": "acme", "vcpus": 4, "qos": "regular", "queued_at": "2026-08-26T09:00:30Z"}
+{"id": "acme-05", "org": "acme", "vcpus": 4, "qos": "regular", "queued_at": "2026-08-26T09:00:40Z"}
+{"id": "acme-06", "org": "acme", "vcpus": 4, "qos": "regular", "queued_at": "2026-08-26T09:00:50Z"}
+{"id": "acme-07", "org": "acme", "vcpus": 8, "qos": "regular", "queued_at": "2026-08-26T09:01:00Z"}
+{"id": "acme-08", "org": "acme", "vcpus": 2, "qos": "regular", "queued_at": "2026-08-26T09:01:10Z"}
+{"id": "acme-09", "org": "acme", "vcpus": 2, "qos": "regular", "queued_at": "2026-08-26T09:01:20Z"}
+{"id": "acme-10", "org": "acme", "vcpus": 4, "qos": "regular", "queued_at": "2026-08-26T09:01:30Z"}
+{"id": "acme-11", "org": "acme", "vcpus": 16, "qos": "regular", "queued_at": "2026-08-26T09:01:40Z"}
+{"id": "acme-12", "org": "acme", "vcpus": 4, "qos": "regular", "queued_at": "2026-08-26T09:01:50Z"}
+{"id": "initech-01", "org": "initech", "vcpus": 2, "qos": "regular", "queued_at": "2026-08-26T09:02:00Z"}
+{"id": "umbrella-01", "org": "umbrella", "vcpus": 4, "qos": "regular", "queued_at": "2026-08-26T09:02:00Z"}
+{"id": "umbrella-02", "org": "umbrella", "vcpus": 4, "qos": "regular", "queued_at": "2026-08-26T09:02:00Z"}
+{"id": "acme-13", "org": "acme", "qos": "regular", "queued_at": "2026-08-26T09:02:10Z"}
+{"id": "umbrella-wide", "org": "umbrella", "vcpus": 48, "qos": "regular", "queued_at": "2026-08-26T09:02:30Z"}
+{"id": "umbrella-03", "org": "umbrella", "vcpus": 8, "qos": "regular", "queued_at": "2026-08-26T09:03:00Z"}
+{"id": "initech-02", "org": "initech", "vcpus": 4, "qos": "regular", "queued_at": "2026-08-26T09:03:30Z"}
+{"id": "acme-release", "org": "acme", "vcpus": 8, "qos": "high", "queued_at": "2026-08-26T09:04:00Z"}
+{"id": "initech-03", "org": "initech", "vcpus": 8, "qos": "regular", "queued_at": "2026-08-26T09:04:30Z"}
+{"id": "umbrella-hot-1", "org": "umbrella", "vcpus": 8, "qos": "high", "queued_at": "2026-08-26T09:05:00Z"}
