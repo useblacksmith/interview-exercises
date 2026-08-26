@@ -1,0 +1,33 @@
+t=1000 adopt j-01 allow
+t=2000 adopt j-02 allow
+t=3000 healthy j-01 reset
+t=4000 fail j-02 streak=1
+t=5000 adopt j-03 allow
+t=6000 fail j-03 streak=2
+t=7000 adopt j-04 allow
+t=8000 fail j-04 streak=3
+t=9000 adopt j-05 allow
+t=10000 healthy j-05 reset
+t=11000 adopt j-06 allow
+t=12000 fail j-06 streak=1
+t=13000 adopt j-07 allow
+line 14 malformed
+t=14000 fail j-07 streak=2
+t=15000 adopt j-08 allow
+t=16000 fail j-08 streak=3
+t=17000 adopt j-09 allow
+t=18000 fail j-09 streak=4
+t=19000 adopt j-10 allow
+t=19500 adopt j-11 allow
+t=20000 fail j-10 streak=5 open until=140000
+t=21000 adopt j-12 deny
+t=45000 adopt j-13 deny
+t=90000 adopt j-14 deny
+t=100000 fail j-11 streak=6
+t=139999 adopt j-15 deny
+t=140000 adopt j-16 allow
+t=141000 fail j-16 streak=7 open until=261000
+t=142000 adopt j-17 deny
+t=262000 adopt j-18 allow
+t=263000 healthy j-18 reset
+t=264000 adopt j-19 allow
