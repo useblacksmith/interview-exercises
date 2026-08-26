@@ -1,0 +1,15 @@
+j-whale -> UNPLACED
+j-orca -> h-hotel
+j-shark -> h-echo
+j-marlin -> h-echo
+j-salmon -> h-golf
+j-tarpon -> h-india
+j-bass -> h-alpha
+j-trout -> h-bravo
+j-perch -> h-delta
+j-cod -> h-foxtrot
+j-eel -> h-juliet
+j-smelt -> h-foxtrot
+j-sole -> h-foxtrot
+j-guppy -> h-foxtrot
+j-minnow -> h-foxtrot
